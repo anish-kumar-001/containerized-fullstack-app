@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # 1. MySQL Database Service
+  mysql-container:
+    image: mysql:8.0
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: mydb
+    # The 'init.sql' creates the 'users' table on first run
+    command: --init-file /data/application/init.sql
+    volumes:
+      - ./init.sql:/data/application/init.sql
+      - mysql-data:/var/lib/mysql # Persistent data volume
+    restart: unless-stopped
+    # NOTE: Port 3306 is not strictly needed, but included for local dev access
+
+  # 2. Node.js Backend Service
+  backend:
+    build: 
+      context: ./backend 
+      dockerfile: Dockerfile
+    container_name: backend
+    # This hostname is used by the frontend to communicate
+    hostname: backend 
+    ports:
+      - "5000:5000" # Expose backend port
+    depends_on:
+      - mysql-container # Ensure database starts first
+    # The app.js 'sleep 10' command handles the database startup wait
+
+  # 3. Nginx Frontend Service
+  frontend:
+    build: 
+      context: ./frontend 
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      # Access the application locally at http://localhost:8080
+      - "8080:80" 
+    depends_on:
+      - backend
+
+# Volumes for persistent data
+volumes:
+  mysql-data:
