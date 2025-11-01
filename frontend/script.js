@@ -1,4 +1,4 @@
-const BACKEND_URL = 'http://3.109.55.95:5000'; // The Docker service name
+const BACKEND_URL = 'http://backend:5000'; // The Docker service name
 
 // Function to fetch and display data
 async function fetchData() {
